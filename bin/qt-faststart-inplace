@@ -1,0 +1,8 @@
+#!/bin/bash
+
+temp=/tmp/qtfaststart_tmp
+qt-faststart $1 $temp;
+if [ -e "$temp" ]; then
+    cp $temp $1;
+    rm $temp;
+fi

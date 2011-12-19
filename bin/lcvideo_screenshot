@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ -z "$1" ] || [ -z "$2" ]; then 
+    echo "usage: $0 infile outfile [start_time]"
+    exit
+fi
+
+ss="00:00:00"
+if [ -n "$3" ]; then
+    ss="$3"
+fi
+
+echo $ss
+
+ffmpeg -y -i $1 -vframes 1 -ss $ss -an -f image2 $2

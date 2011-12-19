@@ -1,0 +1,35 @@
+#!/bin/bash
+
+#mkdir -p /tmp/lcvideo/
+dir=`mktemp -d`
+
+if [ -z "$1" ] ; then 
+    echo usage: $0 output file1 file2 file3 ...
+    exit
+fi
+
+filename=$(basename $1)
+extension=${filename##*.}
+filename=${filename%.*}
+
+i=0
+for var in "$@" ; do
+    if [ $i -ne 0 ]; then
+        ffmpeg -i ${var} -vcodec mpeg1video -s 720x480 -ar 16000 -sameq -r 30 -y ${dir}/inter${i}.mpg
+    fi
+    let i=i+1
+done
+
+j=1
+while [ $j -lt $i ]; do
+    cat ${dir}/inter${j}.mpg >> ${dir}/cat.mpg
+    let j=j+1
+done
+
+ffmpeg -i ${dir}/cat.mpg -sameq ${dir}/cat_p.mpg
+ffmpeg -i ${dir}/cat_p.mpg -sameq -vcodec libx264 -vpre slow -acodec libfaac -y $1
+
+qt-faststart-inplace $1
+
+rm -rfv ${dir}
+

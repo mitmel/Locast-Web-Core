@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#mkdir -p /tmp/lcvideo/
+dir=`mktemp -d`
+
+if [ -z "$1" ] || [ -z "$2" ]; then 
+    echo usage: $0 infile outfile
+    exit
+fi
+
+filename=$(basename $1)
+extension=${filename##*.}
+filename=${filename%.*}
+
+echo ${filename}
+
+ffmpeg -i $1 -s 128x128 -vframes 6 -r 1 -f image2 ${dir}/${filename}%03d.jpg
+convert -delay 20 -loop 0 ${dir}/${filename}*.jpg $2;
+
+rm -v ${dir}/${filename}*.jpg

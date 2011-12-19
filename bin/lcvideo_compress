@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ -z "$1" ] || [ -z "$2" ]; then 
+    echo usage: $0 infile outfile
+    exit
+fi
+
+ffmpeg -y -i $1 -vcodec mpeg4 -b 40000 -r 12 -s 160x120 -acodec libfaac -ar 44100 -ab 64000 -ac 2 $2

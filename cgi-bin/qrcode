@@ -1,0 +1,22 @@
+#!/usr/bin/perl
+
+use strict;
+use CGI  qw/:standard -nosticky/;
+
+use GD::Barcode::QRcode;
+
+my $path = $ENV{'PATH_INFO'};
+my ($type, $data) = $path =~ m!/(\w+)/(.*)!;
+my $ver = 3;
+
+# Why isn't this auto-detected by the module?
+if( length($data) > 49 ){
+	$ver = 4;
+}
+my $output_qr = GD::Barcode::QRcode->new($data, 
+	{Version => $ver, ModuleSize => 4 })->plot->png;
+my $output_length = length $output_qr;
+
+print "Content-Type: image/png\n";
+print "Content-Length: " . $output_length . "\n\n";
+print $output_qr;
