@@ -29,7 +29,7 @@ class TagRecommender:
 
         All tags within the radius of max_dist are considered. Each tag is given
         a weight based on location, which is determined linearly by the distance
-        from the center, i.e. a tag directly on the given location woudl be given
+        from the center, i.e. a tag directly on the given location would be given
         the maximum weight, while a tag directly on the perimiter of the circle
         would be given the minimum.
 

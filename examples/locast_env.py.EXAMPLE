@@ -1,4 +1,0 @@
-import sys
-import settings
-
-sys.path.append('/path/to/core/' + settings.LOCAST_CORE_VERSION + '/')
