@@ -7,7 +7,6 @@ def settings_variables(request):
         'HOST': settings.HOST,
         'BASE_URL': settings.BASE_URL,
         'FULL_BASE_URL': settings.FULL_BASE_URL,
-        'MEDIA_URL': settings.MEDIA_URL
     }
 
     # Allows settings to define which variables

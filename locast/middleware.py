@@ -74,11 +74,16 @@ class LocastMiddleware(object):
             print
             print 'REMOTE_ADDR: ' + request.META['REMOTE_ADDR'] 
             print 'REMOTE_USER: ' 
+
             if 'REMOTE_USER' in request.META:
                 print request.META['REMOTE_USER'] 
+
             print 'REQUEST_USER: ' + request.user.__unicode__()
-            print 'REQUEST_METHOD: ' + request.META['REQUEST_METHOD'] 
-            print 'REQUEST_URI: ' + request.META['REQUEST_URI']
+            print 'REQUEST_METHOD: ' + request.META['REQUEST_METHOD']
+
+            if 'REQUEST_URI' in request.META:
+                print 'REQUEST_URI: ' + request.META['REQUEST_URI']
+
             print 'GET: ' + str(request.GET)
             print 'POST: ' + str(request.POST)
             print '***************************'

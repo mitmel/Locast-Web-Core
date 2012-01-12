@@ -1,3 +1,4 @@
+import re
 import settings
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
