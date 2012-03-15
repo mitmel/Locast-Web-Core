@@ -2,7 +2,7 @@ from django import http
 from django.utils.translation import check_for_language
 
 # COPIED FROM django.views.i18n
-# minus the mnadating of a POST to set language.
+# but uses a get instead of a post
 def set_language(request):
     """
     Redirect to a given url while setting the chosen language in the

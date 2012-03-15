@@ -27,10 +27,31 @@ class ResourceView(object):
             del kwargs['method']
         except:
             method = ''
-        resource_method = request.method.lower() + method
+
+        # The http request method (get, head, put etc.)
+        request_method = request.method.lower()
+
+        # The full resource method (get_object)
+        resource_method = request_method + method
+
         if resource_method.startswith('_'):
             return cls.__not_allowed()
-        return getattr(cls, resource_method, cls.__no_method)(request, *args, **kwargs)
+
+        # The actual method object
+        class_method = getattr(cls, resource_method, None)
+
+        if not class_method:
+            # A hackish way to deal with head requests
+            if request_method == 'head' and hasattr(cls, 'get' + method):
+                response = getattr(cls, 'get' + method)(request, *args, **kwargs)
+                if not isinstance(response, HttpResponse): 
+                    return ''
+                response.content = ''
+                return response
+            else:
+                return cls.__not_allowed()
+
+        return class_method(request, *args, **kwargs)
 
     @classmethod
     def __not_allowed(cls):
@@ -41,19 +62,4 @@ class ResourceView(object):
         if 'get' in allow and 'head' not in allow:
             allow.append('head')
         return HttpResponseNotAllowed(k.upper() for k in allow) 
-
-    @classmethod
-    def __no_method(cls, request, *args, **kwargs):
-        if request.method == 'HEAD' and hasattr(cls, 'get'):
-            return cls.__default_head(request, *args, **kwargs)
-        else:
-            return cls.__not_allowed()
-
-    @classmethod
-    def __default_head(cls, request, *args, **kwargs):
-        response = cls.get(request, *args, **kwargs)
-        if not isinstance(response, HttpResponse): 
-            return ''
-        response.content = ''
-        return response
 
