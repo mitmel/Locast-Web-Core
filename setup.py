@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "locast-core",
-    version = "0.1.1",
+    version = "1.0",
     author = "Amar Boghani",
     author_email = "amarkb@mit.edu",
     description = ("Locast Core"),
@@ -18,10 +18,8 @@ setup(
     keywords = "",
     url = "http://mobile.mit.edu/",
     packages=find_packages(),
-    install_requires = ['facebook-sdk', 'Django>=1.3'],
-    dependency_links = ['https://github.com/pythonforfacebook/facebook-sdk/tarball/master#egg=facebook-sdk'],
+    install_requires = ['Django>=1.4'],
     include_package_data = True,
-    data_files = [('templates', ['locast/templates/google_analytics.django.html'])],
     long_description=read('locast/README'),
     scripts=['bin/lcvideo_combine', 'bin/lcvideo_compress', 'bin/lcvideo_mkflv', 'bin/lcvideo_preview', 'bin/lcvideo_screenshot', 'bin/qt-faststart-inplace'],
     classifiers=[

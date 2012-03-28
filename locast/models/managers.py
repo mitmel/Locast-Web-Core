@@ -86,15 +86,6 @@ class PairableUserManager:
 
         return self.get(auth_secret=auth_secret)
 
-
-class FacebookUserManager:
-
-    def get_by_facebook_id(self, uid):
-        try:
-            return self.get(facebook_id=uid)
-        except get_user_model().DoesNotExist:
-            return None
-
 ### Other managers ###
 
 class BoundryManager(GeoManager):

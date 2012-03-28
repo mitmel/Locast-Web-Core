@@ -1,8 +1,4 @@
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import AnonymousUser
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
-from django.shortcuts import render_to_response
 
 from locast.auth.exceptions import HttpAuthenticationError
 

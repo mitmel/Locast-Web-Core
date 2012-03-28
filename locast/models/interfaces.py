@@ -1,15 +1,12 @@
 import settings
 from datetime import datetime
 
-from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as gismodels
-from django.contrib.gis.db.models.query import GeoQuerySet 
 from django.contrib.gis.geos import Point
 from django.db import models
 from django.db.models import Q
-from django.db.models.query import QuerySet
 from django.utils.translation import ugettext_lazy as _
 
 from locast import get_model
@@ -411,8 +408,6 @@ class Taggable(models.Model):
         list of tags. Does not correctly handle quoted or escaped commas.
         '''
 
-        tag_model = get_model('tag')
-
         # If it's a string, make it into a list of tag names
         if isinstance(tags, str) or isinstance(tags, unicode):
             tags = Taggable.tag_string_to_list(tags)
@@ -514,15 +509,4 @@ class PairableUser(models.Model):
 
         if not self.auth_secret:
             self.auth_secret = get_user_model().objects._gen_unique_auth_secret()
-
-
-class FacebookUser(models.Model):
-
-    class Meta:
-        abstract = True
-
-    facebook_id = models.BigIntegerField(blank=True, null=True)
-
-    def is_facebook_user(self):
-        return (not self.facebook_id == None)
 

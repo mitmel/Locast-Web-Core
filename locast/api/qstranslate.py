@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.db.models import Q
 
 from django.contrib.gis.geos import Point, Polygon

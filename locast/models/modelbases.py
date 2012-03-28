@@ -9,17 +9,14 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as gismodels
-from django.contrib.gis.db.models.manager import GeoManager
-from django.core.files import File
 from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from locast import get_model
-from locast.auth import get_user_model
 from locast.api import api_serialize, datetostr
 from locast.models import ModelBase
-from locast.models import interfaces, managers
+from locast.models import managers
 
 
 class LocastContent(ModelBase):
@@ -258,7 +255,7 @@ class VideoContent(models.Model):
                 resources['screenshot'] = self.serialize_resource(self.screenshot.url)
             
             if self.file_exists(self.animated_preview):
-                resources['preview'] = self.serlialize_resource(animated_preview.url)
+                resources['preview'] = self.serlialize_resource(self.animated_preview.url)
 
             if self.file_exists(self.web_stream_file):
                 resources['web_stream'] = self.serialize_resource(self.web_stream_file.url)
@@ -281,22 +278,22 @@ class VideoContent(models.Model):
             blank=True)
 
     compressed_file = models.FileField(
-            upload_to='content/%Y/%m/%d/', 
+            upload_to='derivatives/%Y/%m/%d/', 
             blank=True,
             help_text=_('Created automatically.'))
 
     web_stream_file = models.FileField(
-            upload_to ='content/%Y/%m/%d/',
+            upload_to ='derivatives/%Y/%m/%d/',
             blank=True,
             help_text=_('Created automatically.'))
     
     screenshot = models.ImageField(
-            upload_to='content_images/%Y/%m/%d/', 
+            upload_to='derivatives/%Y/%m/%d/', 
             blank=True, 
             help_text=_('Created automatically.'))
 
     animated_preview = models.FileField(
-            upload_to='content_images/%Y/%m/%d/', 
+            upload_to='derivatives/%Y/%m/%d/', 
             blank=True,
             help_text=_('Created automatically.'))
 
@@ -423,8 +420,6 @@ class VideoContent(models.Model):
         if self.is_file_current(self.screenshot) and not force_update:
             if verbose: print 'Screenshot Exists'
             return
-
-        filename = self.get_filename(self.file.path)[0]
 
         if not self.file_exists(self.screenshot):
             screenshot_filename = self.get_filename(self.file.path)[0] + '.jpg'

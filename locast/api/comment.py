@@ -26,7 +26,7 @@ def post_comment(request, object):
 
     content = get_param(json, 'content')
     if content:
-        c = object.comment(request.user, content)
+        comment = object.comment(request.user, content)
 
     return APIResponseCreated(content=api_serialize(comment)) 
 
@@ -39,3 +39,4 @@ def check_comment(object, comment_id):
         raise exceptions.APIBadRequest('Comment is not part of this object')
 
     return comment
+

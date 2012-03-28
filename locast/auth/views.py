@@ -76,3 +76,4 @@ def logout(request, next_page=None, template_name='registration/logged_out.html'
     else:
         # Redirect to this page until the session has been cleared.
         return HttpResponseRedirect(next_page or request.path)
+

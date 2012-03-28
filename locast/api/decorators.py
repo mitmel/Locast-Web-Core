@@ -1,3 +1,4 @@
+from django.http import HttpResponseNotAllowed
 
 def allow_method(method):
     ''' Only allow requests of a given method. '''

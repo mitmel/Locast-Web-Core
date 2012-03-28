@@ -66,9 +66,6 @@ class TagRecommender:
         # Get all contents within max_dist radius, and get them back in 'distance' format
         contents = self.content_model.objects.filter(location__distance_lte=(center,max_dist)).distance(center)
 
-        distances = {}
-        weights = []
-
         # max_dist is now a float of meters
         max_dist = max_dist.m
 

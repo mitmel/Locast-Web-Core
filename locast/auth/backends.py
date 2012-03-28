@@ -1,11 +1,7 @@
-from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
-from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import email_re
 
 from locast.auth import get_user_model
-
-import facebook
 
 class BasicBackend(ModelBackend):
 
@@ -69,14 +65,4 @@ class PairedMobileBackend(BasicBackend):
                 return user
         except user_model.DoesNotExist:
             return None
-
-
-class FacebookUserBackend(BasicBackend):                                                           
-    def authenticate(self, request=None):
-        fb_info = facebook.get_user_from_cookie(request.COOKIES, settings.FACEBOOK_APP_ID, settings.FACEBOOK_APP_SECRET)
-
-        if fb_info and 'uid' in fb_info:
-            return get_user_model().objects.get_by_facebook_id(uid=fb_info['uid'])
-
-        return None
 

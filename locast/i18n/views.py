@@ -1,3 +1,5 @@
+import settings
+
 from django import http
 from django.utils.translation import check_for_language
 

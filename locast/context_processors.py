@@ -1,16 +1,12 @@
 from django.conf import settings
 
 def settings_variables(request):
-    ''' Provides base URLs for use in templates '''
+    '''
+    Allows settings to define which variables
+    it wants to expose to templates
+    '''
 
-    d = {
-        'HOST': settings.HOST,
-        'BASE_URL': settings.BASE_URL,
-        'FULL_BASE_URL': settings.FULL_BASE_URL,
-    }
-
-    # Allows settings to define which variables
-    # it wants to expose to templates
+    d = {}
 
     if settings.CONTEXT_VARIABLES:
         for var in settings.CONTEXT_VARIABLES:
@@ -18,3 +14,4 @@ def settings_variables(request):
                 d[var] = getattr(settings, var)
 
     return d
+

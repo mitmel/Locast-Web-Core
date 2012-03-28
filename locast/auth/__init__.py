@@ -12,3 +12,4 @@ def get_user_model():
         raise ImproperlyConfigured('Custom User Model incorrectly defined')
 
     return model
+

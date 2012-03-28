@@ -1,5 +1,4 @@
 from datetime import datetime
-import urllib
 
 from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage

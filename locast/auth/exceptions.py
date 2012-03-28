@@ -5,3 +5,4 @@ class HttpAuthenticationError(Exception):
 class PairingException(Exception):
     ''' Used in locast.models.modelbases.LocastUserManager '''
     pass
+
