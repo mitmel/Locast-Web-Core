@@ -504,22 +504,15 @@ class LocastUser(ModelBase, User):
         if self.display_name:
             d['display_name'] = self.display_name
 
-        d['created'] = datetostr(self.created)
-
         return d
 
     display_name = models.CharField(max_length=32, null=True, blank=True)
 
     objects = managers.LocastUserManager()
 
-    profile = models.TextField(null=True, blank=True)    
-
     # Language codes are in IETF format as described in RFC 4646 (http://tools.ietf.org/html/rfc4646)
     language = models.CharField(max_length=90, choices=settings.LANGUAGES,default='en')
     
-    # TODO: this is duplicating date_joined
-    created = models.DateTimeField(default=datetime.now)
-
     # Default display_name behavior. Override this if you'd like.
     def generate_display_name(self):
         if self.first_name and self.last_name:
