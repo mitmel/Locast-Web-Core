@@ -21,7 +21,7 @@ setup(
     install_requires = ['Django>=1.4'],
     include_package_data = True,
     long_description=read('locast/README'),
-    scripts=['bin/lcvideo_combine', 'bin/lcvideo_compress', 'bin/lcvideo_mkflv', 'bin/lcvideo_preview', 'bin/lcvideo_screenshot', 'bin/qt-faststart-inplace'],
+    scripts=['bin/lcvideo_combine', 'bin/lcvideo_mkflv', 'bin/lcvideo_preview', 'bin/lcvideo_screenshot', 'bin/qt-faststart-inplace'],
     classifiers=[
         "Topic :: Internet :: WWW/HTTP",
         "License :: OSI Approved :: GNU General Public License (GPL)",
