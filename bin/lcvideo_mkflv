@@ -5,5 +5,4 @@ if [ -z "$1" ] || [ -z "$2" ]; then
     exit
 fi
 
-# crf is directly related to the size and quality... lower is better quality
-ffmpeg -i $1 -vcodec libx264 -vpre slow -acodec libfaac -ar 44100 -ab 64000 -crf 29 -f flv -y $2
+ffmpeg -y -i $1 -vcodec libx264 -ar 22050 $2
