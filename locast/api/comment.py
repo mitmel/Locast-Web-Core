@@ -39,4 +39,3 @@ def check_comment(object, comment_id):
         raise exceptions.APIBadRequest('Comment is not part of this object')
 
     return comment
-

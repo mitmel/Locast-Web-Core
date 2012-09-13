@@ -1,8 +1,8 @@
 import settings
+import uuid
 from datetime import datetime
 
 from django.contrib.contenttypes import generic
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as gismodels
 from django.contrib.gis.geos import Point
 from django.db import models
@@ -12,7 +12,24 @@ from django.utils.translation import ugettext_lazy as _
 from locast import get_model
 from locast.api import datetostr, api_serialize
 from locast.auth import get_user_model
-from locast.models import ModelBase
+
+
+class UUID(models.Model):
+
+    class Meta:
+        abstract = True
+
+    uuid = models.CharField(max_length=36, unique=True, blank=True)
+
+    def _api_serialize(self, response):
+        return dict(uuid=self.uuid)
+
+    def _generate_uuid(self):
+        return unicode(uuid.uuid4())
+
+    def _pre_save(self):
+        if not self.uuid:
+            self.uuid = self._generate_uuid()
 
 
 class Authorable(models.Model):
@@ -38,7 +55,9 @@ class Authorable(models.Model):
         return d
 
     author = models.ForeignKey(settings.USER_MODEL)
+
     created = models.DateTimeField('date created', default = datetime.now, editable = False)
+
     modified = models.DateTimeField('date modified', default = datetime.now, editable = False)
 
     def is_author(self, user):
@@ -210,28 +229,6 @@ class Locatable(models.Model):
         self.location = Point(lon, lat)
 
 
-class Flag(ModelBase):
-    ''' 
-    A flag, which is created to indicate inapporpriate content. 
-    See interface: Flaggable.
-    '''
-
-    class Meta:
-        abstract = True
-        verbose_name = _('Flag')
-        verbose_name_plural = _('Flags')
-
-    def __unicode__(self):
-        return unicode(self.content_type) + ': ' + unicode(self.content_object)
-
-    object_id = models.PositiveIntegerField()
-    content_type = models.ForeignKey(ContentType)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
-
-    user = models.ForeignKey(settings.USER_MODEL)
-    reason = models.CharField(max_length=64)
-
-
 class Flaggable(models.Model):
     '''
     Interface for any model that can be flagged as objectionable or 
@@ -269,45 +266,7 @@ class Flaggable(models.Model):
         return (not (flags.count() == 0))
 
 
-class CommentManager(models.Manager):
-
-    def get_comments(self, obj):
-        ''' Returns all comments made about a specific object. '''
-        ctype = ContentType.objects.get_for_model(obj)
-        return self.filter(content_type__pk=ctype.id, object_id=obj.id).order_by('-created')
-
-
-# TODO: make this threadable?
-class Comment(ModelBase, Authorable):
-    ''' 
-    A model used by the Commentable interface representing a single
-    comment made by a user. 
-    '''
-
-    class Meta:
-        abstract = True
-        verbose_name = _('Comment')
-        verbose_name_plural = _('Comments')
-
-    def __unicode__(self):
-        return unicode(self.body) + ' (id: ' + unicode(self.id) + ')'
-
-    def _api_serialize(self, request):
-        d = Authorable._api_serialize(self, request)
-        d['author'] = api_serialize(self.author)
-        d['content'] = self.body
-
-        return d
-
-    objects = CommentManager()
-
-    object_id = models.PositiveIntegerField()
-    content_type = models.ForeignKey(ContentType)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
-
-    body = models.TextField()
-
-
+# Tied to modelbases.Comment
 class Commentable(models.Model):
     ''' This class of item can be commented on. '''
 
@@ -363,27 +322,7 @@ class Favoritable(models.Model):
         return (not (favorites.count() == 0))
 
 
-class Tag(ModelBase):
-    name = models.CharField(max_length=32, primary_key=True)
-
-    # Is this a system tag
-    system_tag = models.BooleanField(default=False)
-
-    class Meta:
-        abstract = True
-
-    def __unicode__(self):
-        return unicode(self.name)
-
-    @staticmethod
-    def filter_tag(raw_text):
-        ''' Normalizes human-entered text into a tag name. '''
-
-        t = raw_text.strip().lower()
-        t = filter(lambda s: s.isalnum() or s.isspace(), t)
-        return t
-
-
+# Tied to modelbases.Tag
 class Taggable(models.Model):
     '''
     Interface for any model that can be tagged using a semantic tag
@@ -509,4 +448,3 @@ class PairableUser(models.Model):
 
         if not self.auth_secret:
             self.auth_secret = get_user_model().objects._gen_unique_auth_secret()
-

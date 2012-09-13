@@ -10,5 +10,8 @@ class APIForbidden(Exception): pass
 # 404
 class APINotFound(Exception): pass
 
+# 409
+class APIConflict(Exception): pass
+
 class InvalidParameterException(Exception): pass
 

@@ -14,7 +14,9 @@ class ResourceMeta(type):
                 continue
             else:
                 pass
+
         super(ResourceMeta, cls).__init__(name, bases, d)
+
         for mn, sm in p.iteritems():
             setattr(cls, mn, sm)
 

@@ -1,8 +1,7 @@
 from django.db import models
 
-# ALL base models should use this...
-# NOT interfaces though
-# A base model is something that could be used as a standalone model. An interface is somethign that would alter a basemodel.
+# ALL base models should use this, but not interfaces though.
+# A base model is something that could be used as a standalone model. An interface is something that would alter a basemodel.
 
 class ModelBase(models.Model):
     ''' 

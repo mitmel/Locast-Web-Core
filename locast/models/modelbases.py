@@ -14,9 +14,9 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from locast import get_model
-from locast.api import api_serialize, datetostr
+from locast.api import api_serialize
 from locast.models import ModelBase
-from locast.models import managers
+from locast.models import managers, interfaces
 
 
 class LocastContent(ModelBase):
@@ -92,13 +92,15 @@ class LocastContent(ModelBase):
     def serialize_resource(url):
         d = {}
         d['url'] = url
-        d['mime_type'] = mime_type = mimetypes.guess_type(url)[0]
+        d['mime_type'] = mimetypes.guess_type(url)[0]
         return d
 
     def _api_serialize(self, request=None):
         ''' See: locast.api.api_serialize '''
 
         d = self.content._content_api_serialize()
+        if hasattr(self.content, 'get_api_uri'):
+            d['uri'] = self.content.get_api_uri()
         d['content_type'] = self.content_type_model
         d['id'] = self.id
         return d
@@ -208,18 +210,13 @@ class ImageContent(models.Model):
             raise self.InvalidMimeType
 
         cf = ContentFile(raw_data)
+
+        # See: http://bugs.python.org/issue4963.
+        mimetypes.init()
         ext = mimetypes.guess_extension(mime_type)
+
         filename = 'mobile_upload_%s%s' % (self.id, ext)
         self.file.save(filename, cf)
-
-
-# video file settings
-# TODO...
-
-WEB_STREAM = ('flv','lcvideo_mkflv')
-COMPRESSED = () 
-SCREENSHOT = ()
-ANIMATED_PREV = ()
 
 
 class VideoContent(models.Model):
@@ -313,7 +310,6 @@ class VideoContent(models.Model):
 
         return False
 
-
     def is_file_current(self, filefield):
         '''
         Checks to see if a generated file (screenshot, web stream, compressed) is up
@@ -327,7 +323,6 @@ class VideoContent(models.Model):
 
         return False
 
-
     def get_filename(self, path):
         '''
         Takes a path, and returns a tuple of the filename and extension
@@ -335,7 +330,6 @@ class VideoContent(models.Model):
         '''
 
         return os.path.split(path)[-1].split('.')
-
 
     # TODO: these file helper methods should perhaps be moved to an abstract
     # class, to be used with video content, photo content etc.
@@ -352,7 +346,6 @@ class VideoContent(models.Model):
         ext = mimetypes.guess_extension(mime_type)
         filename = 'mobile_upload_%s%s' % (self.id, ext)
         self.file.save(filename, cf)
-
 
     def generate_web_stream(self, force_update=False, verbose=False):
         ''' Create an web streamable version of our file, if necessary. '''
@@ -382,7 +375,6 @@ class VideoContent(models.Model):
 
         self.save()
 
-
     def generate_compressed(self, force_update=False, verbose=False):
         ''' Create a compressed version of our file, if necessary. '''
 
@@ -406,7 +398,6 @@ class VideoContent(models.Model):
         makeCompressed = 'lcvideo_compress %s %s' % (self.file.path, self.compressed_file.path)
         compresult = commands.getoutput(makeCompressed)
         compresult = compresult.replace('Multiple frames in a packet from stream 1\n','')
-
 
     def generate_screenshot(self, force_update=False, verbose=False):
         ''' Generate a screenshot using the lcvideo_screenshot script '''
@@ -444,7 +435,6 @@ class VideoContent(models.Model):
             pass
 
         self.save()
-        
 
     def generate_preview(self, force_update = False, verbose = False):
         '''
@@ -472,7 +462,6 @@ class VideoContent(models.Model):
 
         self.save()
 
-    
     def make_mobile_streamable(self):
         '''
         Uses qt-faststart to make the file itself able to be streamed
@@ -517,7 +506,6 @@ class LocastUser(ModelBase, User):
     def generate_display_name(self):
         if self.first_name and self.last_name:
             self.display_name = self.first_name + ' '  + self.last_name[0] + '.'
-            self.save()
 
     def _pre_save(self):
         if not self.display_name:
@@ -552,6 +540,89 @@ class UserActivity(ModelBase):
     object_id = models.PositiveIntegerField()
     content_type = models.ForeignKey(ContentType)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
+
+
+## Interface related models ##
+
+# TODO: make this threadable?
+# Tied to interfaces.Commentable
+class Comment(ModelBase, interfaces.Authorable):
+    ''' 
+    A model used by the Commentable interface representing a single
+    comment made by a user. 
+    '''
+
+    class Meta:
+        abstract = True
+        verbose_name = _('Comment')
+        verbose_name_plural = _('Comments')
+
+    def __unicode__(self):
+        return unicode(self.body) + ' (id: ' + unicode(self.id) + ')'
+
+    def _api_serialize(self, request):
+        d = interfaces.Authorable._api_serialize(self, request)
+        d['author'] = api_serialize(self.author)
+        d['content'] = self.body
+
+        return d
+
+    objects = managers.CommentManager()
+
+    object_id = models.PositiveIntegerField()
+    content_type = models.ForeignKey(ContentType)
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+
+    body = models.TextField()
+
+
+# tied to interfaces.Taggable
+class Tag(ModelBase):
+
+    name = models.CharField(max_length=32, primary_key=True)
+
+    # Is this a system tag
+    system_tag = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+    def __unicode__(self):
+        return unicode(self.name)
+
+    @staticmethod
+    def filter_tag(raw_text):
+        ''' Normalizes human-entered text into a tag name. '''
+
+        t = raw_text.strip().lower()
+        t = filter(lambda s: s.isalnum() or s.isspace(), t)
+        return t
+
+
+# tied to interfaces.Flaggable
+class Flag(ModelBase):
+    ''' 
+    A flag, which is created to indicate inapporpriate content. 
+    See interface: Flaggable.
+    '''
+
+    class Meta:
+        abstract = True
+        verbose_name = _('Flag')
+        verbose_name_plural = _('Flags')
+
+    def __unicode__(self):
+        return unicode(self.content_type) + ': ' + unicode(self.content_object)
+
+    object_id = models.PositiveIntegerField()
+
+    content_type = models.ForeignKey(ContentType)
+
+    content_object = generic.GenericForeignKey('content_type', 'object_id')
+
+    user = models.ForeignKey(settings.USER_MODEL)
+
+    reason = models.CharField(max_length=64)
 
 
 class Boundry(ModelBase):
@@ -645,7 +716,6 @@ class Route(ModelBase):
         return self.routefeature_set.filter( 
             content_type = ct, object_id = object.id).exists()
 
-
     def remove_feature(self, object):
         ''' Remove an object from the route. '''
 
@@ -659,11 +729,9 @@ class Route(ModelBase):
         
         pf.delete()
 
-
     def reorder_features(self, indeces):
         # TODO
         pass
-
 
     def get_route_feature(self, object):
         ''' Get the route feature container for this object. '''
@@ -673,4 +741,3 @@ class Route(ModelBase):
             content_type = ct, object_id = object.id)
         
         return pf
-

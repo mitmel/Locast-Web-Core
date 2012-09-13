@@ -1,12 +1,13 @@
 from datetime import datetime
 
+from django.contrib.gis.geos import Polygon
 from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage
+from django.db.models import Q
 from django.http import HttpResponse, QueryDict
 from django.utils import simplejson
 
 from locast.api import exceptions
-
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
@@ -139,16 +140,6 @@ def api_serialize(obj, request = None, fields = ()):
     return fields_dict
 
 
-# Takes in a geometry object and property dictionary
-# Returns geojson
-def geojson_serialize(obj, geometry, request):
-    d = dict(type = 'Feature', id = obj.id) 
-
-    d['geometry'] = simplejson.loads(geometry.geojson)
-    if hasattr(obj, 'geojson_properties'):
-        d['properties'] = obj.geojson_properties(request)
-    return d
-
 
 def paginate(objs, request_dict):
     '''
@@ -230,9 +221,9 @@ def get_json(raw_data):
     return data
 
 
-def get_object(modelclass, id):
+def get_object(modelclass, id, select_related = False):
     '''
-    Simple utility that will get an object or raise an APINotFound exception
+    Simple utility that will get an object or raise an APINotFound exception.
 
     Arguments:
         modelclass -  The class of the model
@@ -241,7 +232,10 @@ def get_object(modelclass, id):
 
     obj = None
     try:
-        obj = modelclass.objects.get(id=id)
+        if select_related:
+            obj = modelclass.objects.select_related().get(id=id)
+        else:
+            obj = modelclass.objects.get(id=id)
     except modelclass.DoesNotExist:
         raise exceptions.APINotFound
 
@@ -268,4 +262,34 @@ def get_param(dict, param):
     if param in dict and dict[param]:
         return dict[param]
     return None
+
+
+# Takes in a geometry object and property dictionary
+# Returns geojson
+def geojson_serialize(obj, geometry, request):
+    d = dict(type = 'Feature', id = obj.id) 
+
+    d['geometry'] = simplejson.loads(geometry.geojson)
+    if hasattr(obj, 'geojson_properties'):
+        d['properties'] = obj.geojson_properties(request)
+    return d
+
+# Take in a string of coordinates and return a query object that checks
+# if a point is within it Q(location__within=poly)
+#
+# field is the field that represents a point coordinate e.g. location
+
+def get_polygon_bounds_query(bounds_str, field):
+    pnts = bounds_str.split(',')
+
+    if len(pnts) != 4:
+        raise ValueError('bounds_str incorrectly formatted! Should be: x1,y1,x2,y2')
+
+    bbox = (float(pnts[0]), float(pnts[1]), 
+            float(pnts[2]), float(pnts[3]))
+
+    poly = Polygon.from_bbox(bbox)
+    poly.set_srid(4326)
+
+    return Q(**{field + '__within': poly})
 

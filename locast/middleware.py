@@ -54,6 +54,10 @@ class LocastMiddleware(object):
         elif isinstance(exception, APINotFound):
             retval = HttpResponse(content=message, status=404, mimetype='text/plain')
 
+        # 409 Conflict
+        elif isinstance(exception, APIConflict):
+            retval = HttpResponse(content=message, status=409, mimetype='text/plain')
+
         #################################
 
         # 500 Error

@@ -9,7 +9,6 @@ from django.contrib.gis.db.models.manager import GeoManager
 from django.db import models
 
 from locast import get_model
-from locast.auth import get_user_model
 from locast.auth.exceptions import PairingException
 
 ### User Management ###
@@ -20,11 +19,11 @@ class LocastUserManager(UserManager):
     def get_by_username(self, username):
         try:
             return self.get(username=username)
-        except get_user_model().DoesNotExist:
+        except self.model.DoesNotExist:
             return None
 
 
-class PairableUserManager: 
+class PairableUserManager(models.Manager): 
 
     # Settings for the generation of the auth_key
     auth_chars = string.digits
@@ -74,9 +73,9 @@ class PairableUserManager:
             u.paired = True
             u.save()
             return u
-        except get_user_model().DoesNotExist, e:
+        except self.model.DoesNotExist, e:
             raise PairingException('User not found for given auth_secret')
-        except get_user_model().MultipleObjectsReturned, e:
+        except self.model.MultipleObjectsReturned, e:
             raise PairingException('Multiple users for auth_secret found.')
         except e:
             raise PairingException('Uncaught Error: %s' % e)       
@@ -88,14 +87,29 @@ class PairableUserManager:
 
 ### Other managers ###
 
+class CommentManager(models.Manager):
+
+    def get_comments(self, obj):
+        ''' Returns all comments made about a specific object. '''
+        ctype = ContentType.objects.get_for_model(obj)
+        return self.filter(content_type__pk=ctype.id, object_id=obj.id).order_by('-created')
+
+
 class BoundryManager(GeoManager):
     
     def get_default_boundry(self):
-        defs = get_model('boundry').objects.filter(default = True)
+        defs = self.filter(default = True)
         if len(defs):
             return defs[0]
 
         return None
+
+
+class UUIDManager(models.Manager):
+
+    def get_by_uuid(self, uuid):
+        return self.model.objects.get(uuid=uuid)
+
 
 class RouteManager(models.Manager):
     ''' Manager for Route model '''
@@ -103,7 +117,7 @@ class RouteManager(models.Manager):
     def get_routes_by_feature(self, feature):
         routes = []
         ct = ContentType.objects.get_for_model(feature)
-        pfs = get_model('routefeature').objects.filter(content_type = ct,
+        pfs = self.filter(content_type = ct,
             object_id = feature.id)
 
         for pf in pfs:
@@ -145,21 +159,19 @@ class UserActivityManager(models.Manager):
             ua.save()
             user_activity_signal.send(sender=ua, action=ua.action)
 
-
     def get_activities_by_model(self, model):
         ''' Returns all activities relating to a certain model. '''
 
         ct = ContentType.objects.get_for_model(model)
-        return get_model('useractivity').objects.filter(content_type=ct)
+        return self.filter(content_type=ct)
 
     def get_activities_by_user(self, user):
         ''' Returns all activities initiated by a certain user. '''
 
-        return get_model('useractivity').objects.filter(user=user).order_by('-time')
+        return self.filter(user=user)
 
     def get_activities(self, obj):
         ''' Returns activities relating to a specific object. '''
 
         ctype = ContentType.objects.get_for_model(obj)
         return self.filter(content_type__pk=ctype.id, object_id=obj.id)
-

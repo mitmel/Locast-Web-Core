@@ -8,7 +8,7 @@ def settings_variables(request):
 
     d = {}
 
-    if settings.CONTEXT_VARIABLES:
+    if getattr(settings, 'CONTEXT_VARIABLES', None):
         for var in settings.CONTEXT_VARIABLES:
             if hasattr(settings, var):
                 d[var] = getattr(settings, var)

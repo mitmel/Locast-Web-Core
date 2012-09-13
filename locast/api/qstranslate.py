@@ -54,7 +54,6 @@ class QueryTranslator:
         self.base_query = base_query
         self.request = request
 
-
     def filter(self, qdict):
         '''
         Run the filter based on a query dictionary passed in (request.GET or request.POST)
@@ -118,12 +117,24 @@ class QueryTranslator:
                     objs = objs.filter(self.__get_query_obj(field,list_item,'string'))
 
         if 'orderby' in special_params:
-            objs = objs.order_by(special_params['orderby'])
+            orderby = special_params['orderby']
+            desc = False
+            if orderby[0] == '-': 
+                orderby = orderby[1:]
+                desc = True
+            
+            if orderby in self.ruleset:
+                if 'alias' in self.ruleset[orderby]:
+                    orderby = self.ruleset[orderby]['alias']
+
+                if desc: orderby = '-' + orderby
+                objs = objs.order_by(orderby)
+            else:
+                raise InvalidParameterException('Invalid orderby field: ' + orderby)
 
         objs = objs.distinct()
 
         return objs
-
 
     def __get_query_obj(self, field, value, type):
         '''
@@ -151,7 +162,6 @@ class QueryTranslator:
 
         return Q(**{field:value})
 
-
     def __get_field(self, field):
         '''
         Takes a field from the query string, and splits out the field name
@@ -163,7 +173,6 @@ class QueryTranslator:
             field, modifier = field.split('__', 1)
 
         return field, modifier
-
 
     def __sanitize(self, qdict): 
         '''
@@ -224,7 +233,6 @@ class QueryTranslator:
                 else:
                     qdict[k] = [str(v)]
 
-
     def __extract_special_params(self, qdict, params):
         '''
         Takes any params specified in params and removes them from the
@@ -239,4 +247,3 @@ class QueryTranslator:
                 del qdict[p]
 
         return special_params
-
