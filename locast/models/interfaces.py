@@ -120,9 +120,10 @@ class PrivatelyAuthorable(Authorable):
         return d
 
     def _pre_save(self):
-       # Done this way to allow for auto forms to not specify privacy
-       if not self.privacy:
-           self.privacy = PrivatelyAuthorable.DEFAULT_PRIVACY
+        Authorable._pre_save(self)
+        # Done this way to allow for auto forms to not specify privacy
+        if not self.privacy:
+            self.privacy = PrivatelyAuthorable.DEFAULT_PRIVACY
 
     privacy = models.PositiveSmallIntegerField(choices = PRIVACY_CHOICES, default = DEFAULT_PRIVACY, blank=True, null=True)
 
