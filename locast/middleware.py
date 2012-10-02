@@ -1,7 +1,8 @@
 import sys, traceback
 import settings
 
-from django.http import HttpResponse, Http404
+from django import http
+from django.http import Http404
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -22,7 +23,7 @@ class LocastMiddleware(object):
 
         # 401 Authentication Required
         if isinstance(exception, HttpAuthenticationError):
-            resp = HttpResponse('Authentication Required', status=401)
+            resp = http.HttpResponse('Authentication Required', status=401)
             resp['WWW-Authenticate'] = 'Basic realm="User Authentication"'
             retval = resp
 
@@ -40,23 +41,23 @@ class LocastMiddleware(object):
         
         # 400 Bad Request
         elif isinstance(exception, APIBadRequest):
-            retval = HttpResponse(content=message, status=400, mimetype='text/plain')
+            retval = http.HttpResponseBadRequest(content=message, mimetype='text/plain')
 
         # 401 Unauthorized
         elif isinstance(exception, APIUnauthorized):
-            retval = HttpResponse(content=message, status=401, mimetype='text/plain')
+            retval = http.HttpResponse(content=message, status=401, mimetype='text/plain')
 
         # 403 Forbidden
         elif isinstance(exception, APIForbidden):
-            retval = HttpResponse(content=message, status=403, mimetype='text/plain')
+            retval = http.HttpResponseForbidden(content=message, mimetype='text/plain')
 
         # 404 Not Found
         elif isinstance(exception, APINotFound):
-            retval = HttpResponse(content=message, status=404, mimetype='text/plain')
+            retval = http.HttpResponseNotFound(content=message, mimetype='text/plain')
 
         # 409 Conflict
         elif isinstance(exception, APIConflict):
-            retval = HttpResponse(content=message, status=409, mimetype='text/plain')
+            retval = http.HttpResponse(content=message, status=409, mimetype='text/plain')
 
         #################################
 

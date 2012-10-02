@@ -98,7 +98,7 @@ class LocastContent(ModelBase):
     def _api_serialize(self, request=None):
         ''' See: locast.api.api_serialize '''
 
-        d = self.content._content_api_serialize()
+        d = self.content.content_api_serialize()
         if hasattr(self.content, 'get_api_uri'):
             d['uri'] = self.content.get_api_uri()
         d['content_type'] = self.content_type_model
@@ -162,7 +162,7 @@ class TextContent(models.Model):
     class Meta:
         abstract = True
 
-    def _content_api_serialize(self, request=None):
+    def content_api_serialize(self, request=None):
         d = dict(text=self.text)
         return d
 
@@ -183,7 +183,7 @@ class ImageContent(models.Model):
         ('image/tiff', 'TIFF'),
     )
 
-    def _content_api_serialize(self, request=None):
+    def content_api_serialize(self, request=None):
         d = {}
         if self.file:
             d['resources'] = {}
@@ -235,7 +235,7 @@ class VideoContent(models.Model):
         ('video/mpeg', 'MPEG'),
     )
 
-    def _content_api_serialize(self, request=None):
+    def content_api_serialize(self, request=None):
         d = {}
 
         if self.file_exists(self.file):
