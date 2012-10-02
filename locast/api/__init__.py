@@ -11,7 +11,7 @@ from locast.api import exceptions
 
 DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
-# Content should be a python object of json seriazizable types
+# Content should be a python object of json serializable types
 def APIResponseOK(content=None, pg = 1, total = None):
     '''
     An API friendly wrapper for a 200 HttpResponse object, used to return
@@ -47,7 +47,7 @@ def APIResponseCreated(content=None, location=''):
     Arguments:
 
         content
-            The object that was created. Must be JSON serialiazable
+            The object that was created. Must be JSON serializable
 
         location
             The location (url) where this object can be located

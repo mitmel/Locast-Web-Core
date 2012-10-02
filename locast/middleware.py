@@ -94,4 +94,3 @@ class LocastMiddleware(object):
             print 
 
         return retval
-
