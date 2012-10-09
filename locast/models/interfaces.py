@@ -1,6 +1,5 @@
 import settings
 import uuid
-from datetime import datetime
 
 from django.contrib.contenttypes import generic
 from django.contrib.gis.db import models as gismodels
@@ -8,6 +7,7 @@ from django.contrib.gis.geos import Point
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 
 from locast import get_model
 from locast.api import datetostr, api_serialize
@@ -56,9 +56,9 @@ class Authorable(models.Model):
 
     author = models.ForeignKey(settings.USER_MODEL)
 
-    created = models.DateTimeField('date created', default = datetime.now, editable = False)
+    created = models.DateTimeField('date created', default = timezone.now, editable = False)
 
-    modified = models.DateTimeField('date modified', default = datetime.now, editable = False)
+    modified = models.DateTimeField('date modified', default = timezone.now, editable = False)
 
     def is_author(self, user):
         ''' Returns true if the user is the author '''
@@ -76,7 +76,7 @@ class Authorable(models.Model):
         return user.is_authenticated()
 
     def _pre_save(self):
-       self.modified = datetime.now()
+       self.modified = timezone.now()
     
 
 class PrivatelyAuthorable(Authorable):

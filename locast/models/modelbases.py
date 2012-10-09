@@ -2,7 +2,7 @@ import commands
 import mimetypes
 import os
 
-from datetime import datetime, time
+from datetime import time
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -12,6 +12,7 @@ from django.contrib.gis.db import models as gismodels
 from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 
 from locast import get_model
 from locast.api import api_serialize
@@ -534,7 +535,7 @@ class UserActivity(ModelBase):
     objects = managers.UserActivityManager()
 
     user = models.ForeignKey(settings.USER_MODEL)
-    time = models.DateTimeField('activity time', default=datetime.now, editable=False)
+    time = models.DateTimeField('activity time', default=timezone.now, editable=False)
     action = models.CharField(max_length=140, blank=True)
 
     object_id = models.PositiveIntegerField()
