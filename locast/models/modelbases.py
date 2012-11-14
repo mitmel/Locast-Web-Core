@@ -1,8 +1,9 @@
 import commands
 import mimetypes
 import os
+import uuid
 
-from datetime import time
+from datetime import datetime, time
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -170,6 +171,24 @@ class TextContent(models.Model):
 
     text = models.TextField(blank=True,null=True)
 
+# Take in a filename, return a unique filename that only keeps
+# the extension
+
+def _mostly_unique_filename(filename):
+    filename, ext = os.path.splitext(filename)
+    fn = ('%s' % uuid.uuid4()).split('-')
+    return '%s%s%s' % (fn[-1], fn[-2], ext)
+
+def get_content_file_path(instance, filename):
+    filename = _mostly_unique_filename(filename)
+    now = datetime.now()
+    return os.path.join('content/%d/%d/%d/' % (now.year, now.month, now.day), filename)
+
+def get_derivative_file_path(instance, filename):
+    filename = _mostly_unique_filename(filename)
+    now = datetime.now()
+    return os.path.join('derivatives/%d/%d/%d/' % (now.year, now.month, now.day), filename)
+
 
 class ImageContent(models.Model):
 
@@ -199,7 +218,7 @@ class ImageContent(models.Model):
                 raise self.InvalidMimeType
 
     file = models.FileField(
-            upload_to='content/%Y/%m/%d/',
+            upload_to=get_content_file_path,
             blank=True)
 
     def create_file_from_data(self, raw_data, mime_type):
@@ -216,7 +235,8 @@ class ImageContent(models.Model):
         mimetypes.init()
         ext = mimetypes.guess_extension(mime_type)
 
-        filename = 'mobile_upload_%s%s' % (self.id, ext)
+        filename = mostly_unique_filename('file_%s%s' % (self.id, ext))
+
         self.file.save(filename, cf)
 
 
@@ -272,26 +292,26 @@ class VideoContent(models.Model):
     #### Fields ####
 
     file = models.FileField(
-            upload_to='content/%Y/%m/%d/',
+            upload_to=get_content_file_path,
             blank=True)
 
     compressed_file = models.FileField(
-            upload_to='derivatives/%Y/%m/%d/', 
+            upload_to=get_derivative_file_path, 
             blank=True,
             help_text=_('Created automatically.'))
 
     web_stream_file = models.FileField(
-            upload_to ='derivatives/%Y/%m/%d/',
+            upload_to=get_derivative_file_path,
             blank=True,
             help_text=_('Created automatically.'))
     
     screenshot = models.ImageField(
-            upload_to='derivatives/%Y/%m/%d/', 
+            upload_to=get_derivative_file_path, 
             blank=True, 
             help_text=_('Created automatically.'))
 
     animated_preview = models.FileField(
-            upload_to='derivatives/%Y/%m/%d/', 
+            upload_to=get_derivative_file_path, 
             blank=True,
             help_text=_('Created automatically.'))
 

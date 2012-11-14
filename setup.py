@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "locast-core",
-    version = "1.0",
+    version = "1.0.1",
     author = "Amar Boghani",
     author_email = "amarkb@mit.edu",
     description = ("Locast Core"),

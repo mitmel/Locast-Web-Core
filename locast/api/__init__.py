@@ -140,7 +140,6 @@ def api_serialize(obj, request = None, fields = ()):
     return fields_dict
 
 
-
 def paginate(objs, request_dict):
     '''
     Paginates a collection of objects based in a request object dictionary
@@ -292,4 +291,3 @@ def get_polygon_bounds_query(bounds_str, field):
     poly.set_srid(4326)
 
     return Q(**{field + '__within': poly})
-
