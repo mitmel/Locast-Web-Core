@@ -235,7 +235,7 @@ class ImageContent(models.Model):
         mimetypes.init()
         ext = mimetypes.guess_extension(mime_type)
 
-        filename = mostly_unique_filename('file_%s%s' % (self.id, ext))
+        filename = _mostly_unique_filename('file_%s%s' % (self.id, ext))
 
         self.file.save(filename, cf)
 
