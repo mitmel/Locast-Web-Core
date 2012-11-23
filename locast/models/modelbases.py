@@ -1,6 +1,7 @@
 import commands
 import mimetypes
 import os
+import smtplib
 import uuid
 
 from datetime import datetime, time
@@ -10,16 +11,20 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as gismodels
+from django.contrib.sites.models import Site
 from django.core.files.base import ContentFile
+from django.core.mail import send_mail
+from django.core.urlresolvers import reverse
 from django.db import models
+from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 
 from locast import get_model
 from locast.api import api_serialize
 from locast.models import ModelBase
-from locast.models import managers, interfaces
-
+from locast.models.interfaces import Authorable
+from locast.models.managers import BoundryManager, CommentManager, LocastUserManager, RouteManager, UserActivityManager, UserConfirmationManager
 
 class LocastContent(ModelBase):
     '''
@@ -518,7 +523,7 @@ class LocastUser(ModelBase, User):
 
     display_name = models.CharField(max_length=32, null=True, blank=True)
 
-    objects = managers.LocastUserManager()
+    objects = LocastUserManager()
 
     # Language codes are in IETF format as described in RFC 4646 (http://tools.ietf.org/html/rfc4646)
     language = models.CharField(max_length=90, choices=settings.LANGUAGES,default='en')
@@ -552,7 +557,7 @@ class UserActivity(ModelBase):
             object_type = ContentType.objects.get_for_model(self.content_object).model,
             object=api_serialize(self.content_object, request=None))
 
-    objects = managers.UserActivityManager()
+    objects = UserActivityManager()
 
     user = models.ForeignKey(settings.USER_MODEL)
     time = models.DateTimeField('activity time', default=timezone.now, editable=False)
@@ -563,11 +568,44 @@ class UserActivity(ModelBase):
     content_object = generic.GenericForeignKey('content_type', 'object_id')
 
 
+class UserConfirmation(models.Model):
+
+    class Meta:
+        abstract = True
+        verbose_name = _('User confirmation')
+        verbose_name_plural = _('User confirmations')
+
+    objects = UserConfirmationManager()
+
+    user = models.OneToOneField(settings.USER_MODEL)
+    key = models.CharField(max_length=90)
+
+    def send_confirmation_email(self, subject, reply_email=None, confirm_view='confirm_user', template='registration/user_confirmation_email.django.html'):
+        '''
+        Create confirmation email sent to user at registration
+        '''
+
+        site = Site.objects.get_current()
+        site_name = site.name
+
+        if not reply_email:
+            reply_email = 'no-reply@' + site.domain
+
+        user = self.user
+        confirmation_link = settings.HOST + reverse(confirm_view) + '?key=' + self.key
+
+        text = render_to_string(template, locals())
+
+        try:
+            send_mail(subject, text, reply_email, [self.user.email], fail_silently=False)
+        except smtplib.SMTPException:
+            pass
+
 ## Interface related models ##
 
 # TODO: make this threadable?
 # Tied to interfaces.Commentable
-class Comment(ModelBase, interfaces.Authorable):
+class Comment(ModelBase, Authorable):
     ''' 
     A model used by the Commentable interface representing a single
     comment made by a user. 
@@ -582,13 +620,13 @@ class Comment(ModelBase, interfaces.Authorable):
         return unicode(self.body) + ' (id: ' + unicode(self.id) + ')'
 
     def _api_serialize(self, request):
-        d = interfaces.Authorable._api_serialize(self, request)
+        d = Authorable._api_serialize(self, request)
         d['author'] = api_serialize(self.author)
         d['content'] = self.body
 
         return d
 
-    objects = managers.CommentManager()
+    objects = CommentManager()
 
     object_id = models.PositiveIntegerField()
     content_type = models.ForeignKey(ContentType)
@@ -597,7 +635,7 @@ class Comment(ModelBase, interfaces.Authorable):
     body = models.TextField()
 
 
-# tied to interfaces.Taggable
+# tied to intefaces.Taggable
 class Tag(ModelBase):
 
     name = models.CharField(max_length=32, primary_key=True)
@@ -656,7 +694,7 @@ class Boundry(ModelBase):
     def __unicode__(self):
         return u'%s' % self.title
 
-    objects = managers.BoundryManager()
+    objects = BoundryManager()
 
     title = models.CharField(max_length=160)
 
@@ -717,7 +755,7 @@ class Route(ModelBase):
 
         return d
          
-    objects = managers.RouteManager()
+    objects = RouteManager()
 
     def add_feature(self, object, index = None):
         ''' Add a feature. '''

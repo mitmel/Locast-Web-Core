@@ -10,13 +10,13 @@ def read(fname):
 
 setup(
     name = "locast-core",
-    version = "1.0.1",
+    version = "1.1",
     author = "Amar Boghani",
     author_email = "amarkb@mit.edu",
     description = ("Locast Core"),
     license = "GPLv2",
     keywords = "",
-    url = "http://mobile.mit.edu/",
+    url = "http://locast.mit.edu/",
     packages=find_packages(),
     install_requires = ['Django>=1.4'],
     include_package_data = True,
