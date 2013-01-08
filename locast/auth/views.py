@@ -3,7 +3,6 @@ import settings
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.sites.models import Site, RequestSite
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
@@ -12,8 +11,9 @@ from django.template import RequestContext
 from django.utils.translation import ugettext as _
 
 from locast import get_model
+from locast.auth.forms import AuthenticationForm
 
-# CURRENTLY A MIRROR IMAGE OF django.auth.views.login
+# CURRENTLY A MIRROR IMAGE OF django.auth.views.login, except using custom AuthenticationForm
 # Just without the csrf decorator.
 @never_cache
 def login(request, template_name='registration/login.html',
