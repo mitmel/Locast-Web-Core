@@ -37,7 +37,7 @@ def get_cache(key, cache_group=None):
 # TODO: if passed a query_dict, ignore all query parameters
 # not in the query_dict
 
-def request_cache_key(request, user_specific = False, ignore_params = None, cache_group = None):
+def request_cache_key(request, user_specific = False, ignore_params = None):
     '''
     Creates a cache key out of a request
 
@@ -58,11 +58,10 @@ def request_cache_key(request, user_specific = False, ignore_params = None, cach
 
     qd = request.GET.copy()
 
-    # Remove the client cache parameter
     if ignore_params:
         for param in ignore_params:
             if param in qd:
-                del qd['_']
+                del qd[param]
 
     key = request.path + qd.urlencode()
 

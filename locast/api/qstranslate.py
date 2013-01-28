@@ -65,6 +65,8 @@ class QueryTranslator:
         '''
 
         q = Q()
+        # Create a copy so qdict is mutable, and so it doesn't destroy it if it is already mutable
+        qdict = qdict.copy()
 
         special_params = self.__extract_special_params(qdict, ['orderby','page','pagesize'])
 
