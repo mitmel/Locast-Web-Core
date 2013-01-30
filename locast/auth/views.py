@@ -10,7 +10,6 @@ from django.views.decorators.cache import never_cache
 from django.template import RequestContext
 from django.utils.translation import ugettext as _
 
-from locast import get_model
 from locast.auth.forms import AuthenticationForm
 
 # CURRENTLY A MIRROR IMAGE OF django.auth.views.login, except using custom AuthenticationForm
@@ -79,29 +78,3 @@ def logout(request, next_page=None, template_name='registration/logged_out.html'
     else:
         # Redirect to this page until the session has been cleared.
         return HttpResponseRedirect(next_page or request.path)
-
-
-# Confirm a user. See: locast.models.modelbases UserConfirmation
-def confirm_user(request, template_name='registration/user_confirm.django.html'):
-
-    UserConfirmationModel = get_model('userconfirmation')
-    user = None
-
-    # Find user based on the key
-    key = request.GET.get('key', None)
-    if key:
-        try:
-            user = UserConfirmationModel.objects.get_user_by_key(key)
-            uc = UserConfirmationModel.objects.get(user=user)
-
-            # Activate user
-            user.is_active = True
-            user.save()
-
-            uc.delete()
-
-        # If key is incorrect, user will be null
-        except UserConfirmationModel.DoesNotExist:
-            pass
-
-    return render_to_response(template_name, locals(), context_instance = RequestContext(request))

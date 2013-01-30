@@ -1,0 +1,8 @@
+{%load i18n %}
+<div class="static-form">
+{% if user %}
+    {% trans "You are now registered. Login " %}<a href="{% url locast.auth.views.login %}">{% trans "here." %}</a>
+{% else %}
+    {% trans "Invalid Key!" %}
+{% endif %}
+</div>

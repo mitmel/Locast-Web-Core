@@ -1,7 +1,6 @@
 import commands
 import mimetypes
 import os
-import smtplib
 import uuid
 
 from datetime import datetime, time
@@ -11,12 +10,8 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as gismodels
-from django.contrib.sites.models import Site
 from django.core.files.base import ContentFile
-from django.core.mail import send_mail
-from django.core.urlresolvers import reverse
 from django.db import models
-from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
 
@@ -24,7 +19,7 @@ from locast import get_model
 from locast.api import api_serialize
 from locast.models import ModelBase
 from locast.models.interfaces import Authorable
-from locast.models.managers import BoundryManager, CommentManager, LocastUserManager, RouteManager, UserActivityManager, UserConfirmationManager
+from locast.models.managers import BoundryManager, CommentManager, LocastUserManager, RouteManager, UserActivityManager
 
 class LocastContent(ModelBase):
     '''
@@ -566,40 +561,6 @@ class UserActivity(ModelBase):
     object_id = models.PositiveIntegerField()
     content_type = models.ForeignKey(ContentType)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
-
-
-class UserConfirmation(models.Model):
-
-    class Meta:
-        abstract = True
-        verbose_name = _('User confirmation')
-        verbose_name_plural = _('User confirmations')
-
-    objects = UserConfirmationManager()
-
-    user = models.OneToOneField(settings.USER_MODEL)
-    key = models.CharField(max_length=90)
-
-    def send_confirmation_email(self, subject, reply_email=None, confirm_view='confirm_user', template='registration/user_confirmation_email.django.html'):
-        '''
-        Create confirmation email sent to user at registration
-        '''
-
-        site = Site.objects.get_current()
-        site_name = site.name
-
-        if not reply_email:
-            reply_email = 'no-reply@' + site.domain
-
-        user = self.user
-        confirmation_link = settings.HOST + reverse(confirm_view) + '?key=' + self.key
-
-        text = render_to_string(template, locals())
-
-        try:
-            send_mail(subject, text, reply_email, [self.user.email], fail_silently=False)
-        except smtplib.SMTPException:
-            pass
 
 ## Interface related models ##
 
