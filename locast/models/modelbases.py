@@ -21,11 +21,13 @@ from locast.models import ModelBase
 from locast.models.interfaces import Authorable
 from locast.models.managers import BoundryManager, CommentManager, LocastUserManager, RouteManager, UserActivityManager
 
+help_text_automatic = _('Created automatically.')
+
 class LocastContent(ModelBase):
     '''
-    An abstract model that encomposes all media content types (audio, video, text, photo etc...)
+    An abstract model that encompasses all media content types (audio, video, text, photo etc...)
 
-    All app specific content models should inheret from this, and the model of the content type
+    All app specific content models should inherit from this, and the model of the content type
     like the following example:
 
     class AppContent(LocastContent, interfaces...)
@@ -60,7 +62,7 @@ class LocastContent(ModelBase):
             max_length=90,
             blank=True,
             null=True,
-            help_text=_('Created automatically.'))
+            help_text=help_text_automatic)
 
     @staticmethod
     def valid_mimetype(mime_type, mime_types):
@@ -107,7 +109,7 @@ class LocastContent(ModelBase):
         d['id'] = self.id
         return d
 
-    def _pre_save(self): 
+    def _pre_save(self):
         # application
         content_class = self.__class__.__base__
 
@@ -125,7 +127,7 @@ class LocastContent(ModelBase):
         if hasattr(self, '_content_pre_save'):
             self._content_pre_save()
 
-    def _post_save(self): 
+    def _post_save(self):
         content_class = self.__class__.__base__
 
         for interface in content_class.__bases__:
@@ -195,7 +197,7 @@ class ImageContent(models.Model):
     class Meta:
         abstract = True
 
-    MIME_TYPES = ( 
+    MIME_TYPES = (
         # IANA format http://www.iana.org/assignments/media-types/
         ('image/gif', 'GIF'),
         ('image/jpeg', 'JPEG'),
@@ -246,7 +248,7 @@ class VideoContent(models.Model):
     class Meta:
         abstract = True
 
-    MIME_TYPES = ( 
+    MIME_TYPES = (
         # IANA format http://www.iana.org/assignments/media-types/
         ('video/mp4', 'MPEG4'),
         ('video/H264', 'H264'),
@@ -271,7 +273,7 @@ class VideoContent(models.Model):
 
             if self.file_exists(self.screenshot):
                 resources['screenshot'] = self.serialize_resource(self.screenshot.url)
-            
+
             if self.file_exists(self.animated_preview):
                 resources['preview'] = self.serlialize_resource(self.animated_preview.url)
 
@@ -296,27 +298,27 @@ class VideoContent(models.Model):
             blank=True)
 
     compressed_file = models.FileField(
-            upload_to=get_derivative_file_path, 
+            upload_to=get_derivative_file_path,
             blank=True,
-            help_text=_('Created automatically.'))
+            help_text=help_text_automatic)
 
     web_stream_file = models.FileField(
             upload_to=get_derivative_file_path,
             blank=True,
-            help_text=_('Created automatically.'))
-    
+            help_text=help_text_automatic)
+
     screenshot = models.ImageField(
-            upload_to=get_derivative_file_path, 
-            blank=True, 
-            help_text=_('Created automatically.'))
+            upload_to=get_derivative_file_path,
+            blank=True,
+            help_text=help_text_automatic)
 
     animated_preview = models.FileField(
-            upload_to=get_derivative_file_path, 
+            upload_to=get_derivative_file_path,
             blank=True,
-            help_text=_('Created automatically.'))
+            help_text=help_text_automatic)
 
-    duration = models.TimeField(null=True,blank=True, help_text=_('Created automatically.'))
-    
+    duration = models.TimeField(null=True,blank=True, help_text=help_text_automatic)
+
     ### Instance Methods ###
 
     def file_exists(self, filefield):
@@ -334,7 +336,7 @@ class VideoContent(models.Model):
     def is_file_current(self, filefield):
         '''
         Checks to see if a generated file (screenshot, web stream, compressed) is up
-        to date by comparing it to the source. Returns false if the source 
+        to date by comparing it to the source. Returns false if the source
         file does not exist
         '''
 
@@ -386,7 +388,7 @@ class VideoContent(models.Model):
             self.web_stream_file.save(web_stream_filename, ContentFile(''), False)
 
         if verbose: print 'Making web streamable version to %s' % self.web_stream_file.path
-                
+
         #generate web streamable version
         makeweb = 'lcvideo_mkflv %s %s' % (self.file.path, self.web_stream_file.path)
         webresult = commands.getoutput(makeweb)
@@ -414,7 +416,7 @@ class VideoContent(models.Model):
             self.compressed_file.save(compressed_filename, ContentFile(''), False)
 
         if verbose: print 'Compressing non-3gp to %s' % self.compressed_file.path
-                
+
         #generate compressed version
         makeCompressed = 'lcvideo_compress %s %s' % (self.file.path, self.compressed_file.path)
         compresult = commands.getoutput(makeCompressed)
@@ -497,8 +499,8 @@ class VideoContent(models.Model):
 
 
 class LocastUser(ModelBase, User):
-    ''' 
-    A wrapper model for django user, adding some locast specific fields,
+    '''
+    A wrapper model for Django user, adding some Locast specific fields,
     as well as a custom manager with pairing methods.
     '''
 
@@ -522,7 +524,7 @@ class LocastUser(ModelBase, User):
 
     # Language codes are in IETF format as described in RFC 4646 (http://tools.ietf.org/html/rfc4646)
     language = models.CharField(max_length=90, choices=settings.LANGUAGES,default='en')
-    
+
     # Default display_name behavior. Override this if you'd like.
     def generate_display_name(self):
         if self.first_name and self.last_name:
@@ -534,9 +536,9 @@ class LocastUser(ModelBase, User):
 
 
 class UserActivity(ModelBase):
-    ''' 
+    '''
     Model used to log actions of users within the system. Don't create
-    these manually, use the UserActivityManager. 
+    these manually, use the UserActivityManager.
     '''
 
     class Meta:
@@ -546,7 +548,7 @@ class UserActivity(ModelBase):
 
     def _api_serialize(self, request=None):
         return dict(
-            user=self.user.username, 
+            user=self.user.username,
             time=unicode(self.time),
             action=self.action,
             object_type = ContentType.objects.get_for_model(self.content_object).model,
@@ -567,9 +569,9 @@ class UserActivity(ModelBase):
 # TODO: make this threadable?
 # Tied to interfaces.Commentable
 class Comment(ModelBase, Authorable):
-    ''' 
+    '''
     A model used by the Commentable interface representing a single
-    comment made by a user. 
+    comment made by a user.
     '''
 
     class Meta:
@@ -621,8 +623,8 @@ class Tag(ModelBase):
 
 # tied to interfaces.Flaggable
 class Flag(ModelBase):
-    ''' 
-    A flag, which is created to indicate inapporpriate content. 
+    '''
+    A flag, which is created to indicate inappropriate content.
     See interface: Flaggable.
     '''
 
@@ -690,8 +692,8 @@ class RouteFeature(ModelBase):
 
 
 class Route(ModelBase):
-    ''' 
-    A model which represents an ordered set of locatable content. 
+    '''
+    A model which represents an ordered set of locatable content.
 
     note: only works with models inheriting from the locatable interface,
     or with any model that stores its location in a field named "location".
@@ -704,7 +706,7 @@ class Route(ModelBase):
         coords = []
         for pf in self.routefeature_set.all():
             if pf.content_object.location:
-                coords.append((pf.content_object.location.x, 
+                coords.append((pf.content_object.location.x,
                     pf.content_object.location.y))
 
         d = {}
@@ -715,7 +717,7 @@ class Route(ModelBase):
         }
 
         return d
-         
+
     objects = RouteManager()
 
     def add_feature(self, object, index = None):
@@ -733,7 +735,7 @@ class Route(ModelBase):
         ''' Check for the existence of an object within the route. '''
 
         ct = ContentType.objects.get_for_model(object)
-        return self.routefeature_set.filter( 
+        return self.routefeature_set.filter(
             content_type = ct, object_id = object.id).exists()
 
     def remove_feature(self, object):
@@ -746,7 +748,7 @@ class Route(ModelBase):
         for p in next_pfs:
             p.index = p.index-1
             p.save()
-        
+
         pf.delete()
 
     def reorder_features(self, indeces):
@@ -759,5 +761,5 @@ class Route(ModelBase):
         ct = ContentType.objects.get_for_model(object)
         pf = get_model('routefeature').objects.get(
             content_type = ct, object_id = object.id)
-        
+
         return pf
