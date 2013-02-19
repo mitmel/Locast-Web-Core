@@ -204,6 +204,12 @@ def form_validate(formclass, data, instance=None, commit=True):
     form = formclass(qd, instance=instance)
 
     if not form.is_valid():
+        # If a uuid conflict is the issue, add the conflicting uri to the error message
+        if 'uuid' in form.errors:
+            conflicting = form._meta.model.objects.get(uuid = data['uuid'])
+            if conflicting and hasattr(conflicting, 'get_api_uri'):
+                form.errors['uri'] = conflicting.get_api_uri()
+
         raise exceptions.APIBadRequest(simplejson.dumps(form.errors))
 
     return form.save(commit=commit)

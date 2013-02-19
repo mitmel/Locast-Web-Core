@@ -14,15 +14,28 @@ from locast.api import datetostr, api_serialize
 from locast.auth import get_user_model
 
 
-class UUID(models.Model):
+class Syncable(models.Model):
+    ''' 
+    Interface to be used for a model that will be synced with a client via the API
+    '''
 
     class Meta:
         abstract = True
 
     uuid = models.CharField(max_length=36, unique=True, blank=True)
+        
+    created = models.DateTimeField('date created', default = timezone.now, editable = False)
 
-    def _api_serialize(self, response):
-        return dict(uuid=self.uuid)
+    modified = models.DateTimeField('date modified', default = timezone.now, editable = False)
+
+    def _api_serialize(self, request):
+        d = {}
+
+        d['created'] = datetostr(self.created)
+        d['modified'] = datetostr(self.modified)
+        d['uuid'] = self.uuid
+
+        return d
 
     def _generate_uuid(self):
         return unicode(uuid.uuid4())
@@ -32,21 +45,19 @@ class UUID(models.Model):
             self.uuid = self._generate_uuid()
 
 
-class Authorable(models.Model):
+class Authorable(Syncable):
     ''' 
-    Interface to be used for any model creatable by a user in the system.
+    Interface to be used for any model that is created by a user in the system.
     '''
 
     class Meta:
         abstract = True
 
     def _api_serialize(self, request):
-        d = {}
+        d = Syncable._api_serialize(self, request)
 
         author = api_serialize(self.author)
         d['author'] = author
-        d['created'] = datetostr(self.created)
-        d['modified'] = datetostr(self.modified)
 
         if request:
             d['is_author'] = self.is_author(request.user)
@@ -55,10 +66,6 @@ class Authorable(models.Model):
         return d
 
     author = models.ForeignKey(settings.USER_MODEL)
-
-    created = models.DateTimeField('date created', default = timezone.now, editable = False)
-
-    modified = models.DateTimeField('date modified', default = timezone.now, editable = False)
 
     def is_author(self, user):
         ''' Returns true if the user is the author '''
@@ -76,6 +83,7 @@ class Authorable(models.Model):
         return user.is_authenticated()
 
     def _pre_save(self):
+       Syncable._pre_save(self)
        self.modified = timezone.now()
     
 

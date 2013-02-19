@@ -34,7 +34,7 @@ def cache_api_response(user_specific = False, ignore_params = None, cache_group 
     def _cached_view(view_func):
 
         def _cache_response(request, *args, **kwargs):
-            key = request_cache_key(request, user_specific = user_specific, ignore_params = ignore_params, cache_group = cache_group)
+            key = request_cache_key(request, user_specific = user_specific, ignore_params = ignore_params)
             cache = get_cache(key, cache_group = cache_group)
             if cache:
                 return cache
