@@ -10,7 +10,7 @@ def read(fname):
 
 setup(
     name = "locast-core",
-    version = "1.2",
+    version = "1.2.1",
     author = "Amar Boghani",
     author_email = "amarkb@mit.edu",
     description = ("Locast Core"),
@@ -18,7 +18,7 @@ setup(
     keywords = "",
     url = "http://locast.mit.edu/",
     packages=find_packages(),
-    install_requires = ['Django>=1.4'],
+    install_requires = ['Django>=1.5'],
     include_package_data = True,
     long_description=read('locast/README'),
     scripts=['bin/lcvideo_combine', 'bin/lcvideo_mkflv', 'bin/lcvideo_preview', 'bin/lcvideo_screenshot', 'bin/qt-faststart-inplace'],

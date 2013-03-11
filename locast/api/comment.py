@@ -22,7 +22,7 @@ def get_comments(request, object, comment_id=None):
 def post_comment(request, object):
     comment = None
 
-    json = get_json(request.raw_post_data)
+    json = get_json(request.body)
 
     content = get_param(json, 'content')
     if content:

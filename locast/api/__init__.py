@@ -1,11 +1,11 @@
 from datetime import datetime
+import json
 
 from django.contrib.gis.geos import Polygon
 from django.core import serializers
 from django.core.paginator import Paginator, EmptyPage
 from django.db.models import Q
 from django.http import HttpResponse, QueryDict
-from django.utils import simplejson
 
 from locast.api import exceptions
 
@@ -30,7 +30,7 @@ def APIResponseOK(content=None, pg = 1, total = None):
             collection
     '''
 
-    content = simplejson.dumps(content, ensure_ascii=False)
+    content = json.dumps(content, ensure_ascii=False)
     resp = HttpResponse(status=200, mimetype='application/json; charset=utf-8', content=content)
 
     if total:
@@ -53,7 +53,7 @@ def APIResponseCreated(content=None, location=''):
             The location (url) where this object can be located
     '''
 
-    content = simplejson.dumps(content, ensure_ascii=False)
+    content = json.dumps(content, ensure_ascii=False)
     resp = HttpResponse(status=201, mimetype='application/json; charset=utf-8', content=content)
     resp['Location'] = location
     return resp
@@ -210,7 +210,7 @@ def form_validate(formclass, data, instance=None, commit=True):
             if conflicting and hasattr(conflicting, 'get_api_uri'):
                 form.errors['uri'] = conflicting.get_api_uri()
 
-        raise exceptions.APIBadRequest(simplejson.dumps(form.errors))
+        raise exceptions.APIBadRequest(json.dumps(form.errors))
 
     return form.save(commit=commit)
 
@@ -219,7 +219,7 @@ def get_json(raw_data):
     data = None
 
     try:
-        data = simplejson.loads(raw_data)
+        data = json.loads(raw_data)
     except ValueError:
         raise exceptions.APIBadRequest('Invalid JSON')
 
@@ -274,7 +274,7 @@ def get_param(dict, param):
 def geojson_serialize(obj, geometry, request):
     d = dict(type = 'Feature', id = obj.id) 
 
-    d['geometry'] = simplejson.loads(geometry.geojson)
+    d['geometry'] = json.loads(geometry.geojson)
     if hasattr(obj, 'geojson_properties'):
         d['properties'] = obj.geojson_properties(request)
     return d
