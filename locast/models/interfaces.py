@@ -1,6 +1,7 @@
 import settings
 import uuid
 
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes import generic
 from django.contrib.gis.db import models as gismodels
 from django.contrib.gis.geos import Point
@@ -11,7 +12,6 @@ from django.utils import timezone
 
 from locast import get_model
 from locast.api import datetostr, api_serialize
-from locast.auth import get_user_model
 
 
 class Syncable(models.Model):
@@ -65,7 +65,7 @@ class Authorable(Syncable):
 
         return d
 
-    author = models.ForeignKey(settings.USER_MODEL)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL)
 
     def is_author(self, user):
         ''' Returns true if the user is the author '''
@@ -309,7 +309,7 @@ class Favoritable(models.Model):
 
         return d
 
-    favorited_by = models.ManyToManyField(settings.USER_MODEL, related_name='favorite_%(class)s', null=True, blank=True)
+    favorited_by = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='favorite_%(class)s', null=True, blank=True)
 
     def favorite(self, user): 
         ''' Favorite this object. '''
@@ -415,7 +415,7 @@ class Joinable(models.Model):
     class Meta:
         abstract = True
 
-    member = models.ManyToManyField(settings.USER_MODEL, related_name="member_%(class)s", null=True, blank=True)
+    member = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name="member_%(class)s", null=True, blank=True)
 
     def is_member(self, user):
         try:

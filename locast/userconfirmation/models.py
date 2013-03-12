@@ -18,7 +18,7 @@ class UserConfirmation(models.Model):
 
     objects = UserConfirmationManager()
 
-    user = models.OneToOneField(settings.USER_MODEL)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL)
     key = models.CharField(max_length=90)
 
     def send_confirmation_email(self, subject, reply_email=None, confirm_view='confirm_user', template='user_confirmation_email.django.html'):

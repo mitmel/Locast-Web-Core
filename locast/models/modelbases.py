@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, time
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as gismodels
@@ -498,7 +498,7 @@ class VideoContent(models.Model):
         makestream_result = commands.getoutput(makestream)
 
 
-class LocastUser(ModelBase, User):
+class LocastUser(ModelBase, AbstractUser):
     '''
     A wrapper model for Django user, adding some Locast specific fields,
     as well as a custom manager with pairing methods.
@@ -556,7 +556,7 @@ class UserActivity(ModelBase):
 
     objects = UserActivityManager()
 
-    user = models.ForeignKey(settings.USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
     time = models.DateTimeField('activity time', default=timezone.now, editable=False)
     action = models.CharField(max_length=140, blank=True)
 
@@ -642,7 +642,7 @@ class Flag(ModelBase):
 
     content_object = generic.GenericForeignKey('content_type', 'object_id')
 
-    user = models.ForeignKey(settings.USER_MODEL)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
 
     reason = models.CharField(max_length=64)
 

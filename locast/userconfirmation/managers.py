@@ -1,9 +1,9 @@
 import hashlib
 import string
 
+from django.contrib.auth import get_user_model
 from django.db import models
 
-from locast.auth import get_user_model
 from locast.util import random_string
 
 class UserConfirmationManager(models.Manager):

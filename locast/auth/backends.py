@@ -1,7 +1,7 @@
 from django.contrib.auth.backends import ModelBackend
 from django.core.validators import email_re
 
-from locast.auth import get_user_model
+from django.contrib.auth import get_user_model
 
 class BasicBackend(ModelBackend):
 

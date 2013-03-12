@@ -2,7 +2,7 @@ import settings
 import string
 
 from django import dispatch
-from django.contrib.auth.models import UserManager
+from django.contrib.auth.models import BaseUserManager
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models.manager import GeoManager
 from django.db import models
@@ -13,7 +13,7 @@ from locast.util import random_string
 
 ### User Management ###
 
-class LocastUserManager(UserManager):
+class LocastUserManager(BaseUserManager):
     '''Custom manager for a User.'''
 
     def get_by_username(self, username):
