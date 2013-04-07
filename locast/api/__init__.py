@@ -259,7 +259,7 @@ def datetostr(date):
     return date.strftime(DATE_FORMAT)
 
 
-# NOTE: This should be deprecated. can just use
+# TODO: This should be deprecated. can just use
 # QueryDict.get(key, None)
 def get_param(dict, param):
     '''Simple utility to get a value out of a dict, or return None. Avoids KeyErrors'''

@@ -48,3 +48,48 @@ def cache_api_response(user_specific = False, ignore_params = None, cache_group 
         return _cache_response
  
     return _cached_view
+
+# Based on https://gist.github.com/sivy/871954
+def jsonp_support(callback_param='callback'):
+    '''
+    Wrap a json response in a callback, and set the mimetype (Content-Type) header accordingly 
+    (will wrap in text/javascript if there is a callback). If the "callback" or "jsonp" paramters 
+    are provided, will wrap the json output in callback({thejson})
+    
+    Usage:
+    
+    @jsonp
+    def my_json_view(request):
+        d = { 'key': 'value' }
+        return HTTPResponse(json.dumps(d), content_type='application/json')
+
+    for a custom callback parameter,
+
+    @jsonp('jsonp_callback')
+    def my_json_view(request):
+        d = { 'key': 'value' }
+        return HTTPResponse(json.dumps(d), content_type='application/json')
+    '''
+
+    def jsonp(f):
+
+        from functools import wraps
+        @wraps(f)
+        def jsonp_wrapper(request, *args, **kwargs):
+            callback = request.GET.get(callback_param, None)
+
+            resp = f(request, *args, **kwargs)
+
+            if resp.status_code != 200:
+                return resp
+
+            if callback:
+                resp['Content-Type']='text/javascript; charset=utf-8'
+                resp.content = "%s(%s)" % (callback, resp.content)
+                return resp
+            else:
+                return resp                
+                    
+        return jsonp_wrapper
+
+    return jsonp

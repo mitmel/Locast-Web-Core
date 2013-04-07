@@ -186,12 +186,11 @@ class QueryTranslator:
 
             field, modifier = self.__get_field(k)
 
-            if field[0] == '_':
+            # If it's not a valid field, or a field that should be exposed, remove it
+            if not field in self.ruleset:
                 del qdict[k]
-            else:
-                if not field in self.ruleset:
-                    raise InvalidParameterException('Parameter not recognized: ' + field)
 
+            else:
                 # CHECK THE TYPE
                 type = self.ruleset[field]['type']
 
@@ -202,7 +201,7 @@ class QueryTranslator:
                     qdict[k] = [int(v)]
 
                 elif type == 'bool':
-                    qdict[k] = [(v.lower() == "true")]
+                    qdict[k] = [(v.lower() == 'true')]
 
                 elif type == 'list':
                     list = v.split(',')
