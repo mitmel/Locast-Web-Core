@@ -30,7 +30,7 @@ def APIResponseOK(content=None, pg = 1, total = None):
             collection
     '''
 
-    content = json.dumps(content, ensure_ascii=False)
+    content = json.dumps(content)
     resp = HttpResponse(status=200, mimetype='application/json; charset=utf-8', content=content)
 
     if total:
@@ -53,7 +53,7 @@ def APIResponseCreated(content=None, location=''):
             The location (url) where this object can be located
     '''
 
-    content = json.dumps(content, ensure_ascii=False)
+    content = json.dumps(content)
     resp = HttpResponse(status=201, mimetype='application/json; charset=utf-8', content=content)
     resp['Location'] = location
     return resp
