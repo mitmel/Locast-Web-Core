@@ -85,7 +85,7 @@ def jsonp_support(callback_param='callback'):
 
             if callback:
                 resp['Content-Type']='text/javascript; charset=utf-8'
-                resp.content = "%s(%s)" % (callback, resp.content)
+                resp.content = u'%s(%s)' % (callback, resp.content)
                 return resp
             else:
                 return resp                
