@@ -7,8 +7,9 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
-from locast.api.exceptions import *
-from locast.auth.exceptions import *
+from locast.api.exceptions import APIBadRequest, APIUnauthorized, APIForbidden, APINotFound, APIConflict
+from locast.auth.exceptions import HttpAuthenticationError
+
 
 class LocastMiddleware(object):
     ''' Middleware which intercepts API and HTTP exceptions and handles them, printing out logging info '''
@@ -67,6 +68,7 @@ class LocastMiddleware(object):
 
         is_500 = not retval and not is_404
 
+        # Print a log message if debug is turned on, always print 500s
         if settings.DEBUG or is_500:
             print
 
@@ -95,3 +97,56 @@ class LocastMiddleware(object):
             print 
 
         return retval
+ 
+
+# Based on: https://gist.github.com/jessykate/2941258
+class CORSMiddleware(object):
+    '''
+    This middleware allows cross-domain XHR using the html5 postMessage API.
+
+    eg.
+    Access-Control-Allow-Origin: http://foo.example
+    Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE
+    Access-Control-Allow-Headers: ["Content-Type"]
+    '''
+
+    # Default settings
+    CORS_ALLOWED_ORIGINS = '*'
+    CORS_ALLOWED_METHODS = ['POST','GET','PUT','HEAD','DELETE','OPTIONS']
+    CORS_ALLOWED_HEADERS = ['ORIGIN', 'CONTENT_TYPE']
+
+    def __init__(self):
+        # OVerride defaults
+        if hasattr(settings, 'CORS_ALLOWED_ORIGINS'):
+            self.CORS_ALLOWED_ORIGINS = settings.CORS_ALLOWED_ORIGINS
+        if hasattr(settings, 'CORS_ALLOWED_METHODS'):
+            self.CORS_ALLOWED_METHODS = settings.CORS_ALLOWED_METHODS
+        if hasattr(settings, 'CORS_ALLOWED_HEADERS'):
+            self.CORS_ALLOWED_HEADERS = settings.CORS_ALLOWED_HEADERS
+
+    def process_request(self, request):
+        if request.method == 'OPTIONS':
+            response = http.HttpResponse()
+
+            if 'HTTP_ACCESS_CONTROL_REQUEST_METHOD' in request.META:
+                response['Access-Control-Allow-Methods'] = ','.join(self.CORS_ALLOWED_METHODS)
+
+            if 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS' in request.META:
+                response['Access-Control-Allow-Headers']  = ','.join(self.CORS_ALLOWED_HEADERS)
+
+            return response
+ 
+        return None
+ 
+    def process_response(self, request, response):
+
+        # If it's already been set, just return the response
+        if response.has_header('Access-Control-Allow-Origin'):
+            return response
+
+        if not response.has_header('Access-Control-Allow-Methods'):
+            response['Access-Control-Allow-Methods'] = ",".join(self.CORS_ALLOWED_METHODS)
+
+        response['Access-Control-Allow-Origin']  = self.CORS_ALLOWED_ORIGINS 
+
+        return response
