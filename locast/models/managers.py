@@ -90,9 +90,9 @@ class CommentManager(models.Manager):
         return self.filter(content_type__pk=ctype.id, object_id=obj.id).order_by('-created')
 
 
-class BoundryManager(GeoManager):
+class BoundaryManager(GeoManager):
     
-    def get_default_boundry(self):
+    def get_default_boundary(self):
         defs = self.filter(default = True)
         if len(defs):
             return defs[0]

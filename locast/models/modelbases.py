@@ -10,6 +10,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db import models as gismodels
+from django.contrib.gis.db.models.manager import GeoManager
 from django.core.files.base import ContentFile
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -18,8 +19,8 @@ from django.utils import timezone
 from locast import get_model
 from locast.api import api_serialize
 from locast.models import ModelBase
-from locast.models.interfaces import Authorable
-from locast.models.managers import BoundryManager, CommentManager, LocastUserManager, RouteManager, UserActivityManager
+from locast.models.interfaces import Authorable, Locatable, Titled
+from locast.models.managers import BoundaryManager, CommentManager, LocastUserManager, RouteManager, UserActivityManager
 
 help_text_automatic = _('Created automatically.')
 
@@ -647,19 +648,17 @@ class Flag(ModelBase):
     reason = models.CharField(max_length=64)
 
 
-class Boundry(ModelBase):
+class Boundary(ModelBase, Titled):
 
     class Meta:
         abstract = True
-        verbose_name = _('boundry')
+        verbose_name = _('boundary')
         verbose_name_plural = _('boundries')
 
     def __unicode__(self):
         return u'%s' % self.title
 
-    objects = BoundryManager()
-
-    title = models.CharField(max_length=160)
+    objects = BoundaryManager()
 
     bounds = gismodels.PolygonField()
 
@@ -667,10 +666,47 @@ class Boundry(ModelBase):
 
     def _pre_save(self):
         if self.default:
-            cur_defs = get_model('boundry').objects.filter(default=True)
+            cur_defs = get_model('boundary').objects.filter(default=True)
             for c in cur_defs:
                 c.default = False
                 c.save()
+
+
+class MapPlace(ModelBase, Locatable, Titled):
+
+    class Meta:
+        abstract = True
+        verbose_name = _('map place')
+        verbose_name_plural = _('map places')
+
+    def __unicode__(self):
+        return u'%s' % self.title
+
+    def _api_serialize(self, request=None):
+        d = Locatable._api_serialize(self, request)
+        d.update(Titled._api_serialize(self, request))
+        if self.zoom_level:
+            d['zoom_level'] = self.zoom_level
+
+        return d
+
+    objects = GeoManager()
+
+    default = models.BooleanField(default=False)
+
+    zoom_level = models.PositiveIntegerField(null=True, blank=True)
+
+    def _pre_save(self):
+        if self.default:
+            cur_defs = get_model('mapplace').objects.filter(default=True)
+            for c in cur_defs:
+                c.default = False
+                c.save()
+
+        else:
+            cur_defs = get_model('mapplace').objects.filter(default=True)
+            if len(cur_defs) == 0:
+                self.default = True
 
 
 class RouteFeature(ModelBase):
