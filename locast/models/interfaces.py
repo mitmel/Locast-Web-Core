@@ -303,9 +303,9 @@ class Favoritable(models.Model):
     def _api_serialize(self, request):
         d = {}
         if request:
-            d['is_favorite'] = self.is_favorited_by(request.user)
+            d['favorite'] = self.is_favorited_by(request.user)
 
-        d['favorites'] = self.favorited_by.count()
+        d['favorite_count'] = self.favorited_by.count()
 
         return d
 
