@@ -18,7 +18,7 @@ setup(
     keywords = "",
     url = "http://locast.mit.edu/",
     packages=find_packages(),
-    install_requires = ['Django>=1.5'],
+    install_requires = ['Django>=1.5,<=1.6', 'python-magic'],
     include_package_data = True,
     long_description=read('locast/README'),
     scripts=['bin/lcvideo_combine', 'bin/lcvideo_mkflv', 'bin/lcvideo_preview', 'bin/lcvideo_screenshot', 'bin/qt-faststart-inplace'],

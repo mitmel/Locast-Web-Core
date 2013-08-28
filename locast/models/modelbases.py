@@ -1,4 +1,5 @@
 import commands
+import magic
 import mimetypes
 import os
 import uuid
@@ -78,7 +79,7 @@ class LocastContent(ModelBase):
     def path_to_mimetype(path, mime_types):
         ''' Converts a path to a mimetype, checking it against valid mime_types '''
 
-        mime_type = mimetypes.guess_type(path)[0]
+        mime_type = magic.from_file(path, mime=True)
 
         if LocastContent.valid_mimetype(mime_type, mime_types):
             return mime_type
@@ -88,7 +89,7 @@ class LocastContent(ModelBase):
     @staticmethod
     def path_to_content_model(path, content_models):
         ''' Given a path and an array of content_models, returns the one that matches '''
-        mime_type = mimetypes.guess_type(path)[0]
+        mime_type = magic.from_file(path, mime=True)
         for cm in content_models:
             if cm.valid_mimetype(mime_type, cm.MIME_TYPES):
                 return cm
@@ -142,6 +143,7 @@ class LocastContent(ModelBase):
 
         if hasattr(self, self.content_type_model):
             return getattr(self, self.content_type_model)
+
         return None
 
     @property
@@ -170,7 +172,6 @@ class TextContent(models.Model):
     def content_api_serialize(self, request=None):
         d = dict(text=self.text)
         return d
-
 
     text = models.TextField(blank=True,null=True)
 
@@ -289,7 +290,6 @@ class VideoContent(models.Model):
         if self.file and not self.mime_type:
             self.mime_type = self.path_to_mimetype(self.file.path, self.MIME_TYPES)
             if not self.mime_type:
-                self.file = None
                 raise self.InvalidMimeType
 
     #### Fields ####
