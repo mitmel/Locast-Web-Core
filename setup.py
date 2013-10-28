@@ -11,7 +11,7 @@ def read(fname):
 setup(
     name = "locast-core",
     version = "1.4",
-    author = "Amar Boghani",
+    author = "Amar B.",
     author_email = "amarkb@mit.edu",
     description = ("Locast Core"),
     license = "GPLv2",
