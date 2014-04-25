@@ -216,7 +216,9 @@ class ImageContent(models.Model):
         return d
 
     def _content_pre_save(self):
-        if self.file and not self.mime_type:
+        # Need to check that the file exists. If uploading through the admin site, the file isn't
+        # created at this point
+        if (not self.mime_type) and self.file and self.file.path and os.path.exists(self.file.path):
             self.mime_type = self.path_to_mimetype(self.file.path, self.MIME_TYPES)
             if not self.mime_type:
                 raise self.InvalidMimeType
